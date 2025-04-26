@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Dad's Message Board</title>
+  <meta http-equiv="refresh" content="600"> <!-- Refresh every 10 min -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 28px;
+      text-align: center;
+      margin-top: 50px;
+      padding: 20px;
+    }
+    #date {
+      font-weight: bold;
+      margin-bottom: 30px;
+      font-size: 36px;
+    }
+    #message {
+      white-space: pre-line;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="date"></div>
+<div id="message">Loading message...</div>
+
+<script>
+// Display today's date
+const now = new Date();
+const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+document.getElementById('date').innerText = now.toLocaleDateString('en-GB', options);
+
+// Fetch the CSV file from Google Sheets
+fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vS1tum_HqVBeq7JYYO66Gp0DFwe0ekDd1DtGQexnI49fYxwBzIYWCPAJIEvd2g5cPH6uf-tAItqErSN/pub?gid=0&single=true&output=csv')
+  .then(response => response.text())
+  .then(csv => {
+    const lines = csv.trim().split('\n');
+    const today = new Date();
+    const todayString = today.toLocaleDateString('en-GB'); // DD/MM/YYYY
+    let found = false;
+
+    for (const line of lines) {
+      const [date, message] = line.split(',');
+      if (date.trim() === todayString) {
+        document.getElementById('message').innerText = message.trim();
+        found = true;
+        break;
+      }
+    }
+
+    if (!found) {
+      document.getElementById('message').innerText = "No message today.";
+    }
+  })
+  .catch(err => {
+    document.getElementById('message').innerText = "Error loading message.";
+  });
+</script>
+
+</body>
+</html>
