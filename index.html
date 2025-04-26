@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Dad's Message Board</title>
-  <meta http-equiv="refresh" content="600"> <!-- Refresh every 10 min -->
+  <meta http-equiv="refresh" content="600"> <!-- Refresh every 10 minutes -->
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -18,8 +18,15 @@
       font-size: 36px;
     }
     #message {
-      white-space: pre-line;
+      font-size: 32px;
+      font-weight: bold;
       margin-top: 20px;
+    }
+    #details {
+      font-size: 24px;
+      margin-top: 15px;
+      color: #333;
+      white-space: pre-line;
     }
   </style>
 </head>
@@ -27,6 +34,7 @@
 
 <div id="date"></div>
 <div id="message">Loading message...</div>
+<div id="details"></div>
 
 <script>
 // Display today's date
@@ -39,25 +47,21 @@ fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vS1tum_HqVBeq7JYYO66Gp0DF
   .then(response => response.text())
   .then(csv => {
     const lines = csv.trim().split('\n');
-    const today = new Date();
-    const todayString = today.toLocaleDateString('en-GB'); // DD/MM/YYYY
-    let found = false;
 
-    for (const line of lines) {
-      const [date, message] = line.split(',');
-      if (date.trim() === todayString) {
-        document.getElementById('message').innerText = message.trim();
-        found = true;
-        break;
-      }
-    }
+    if (lines.length > 1) {
+      // The first line is header. The second line is the first actual message.
+      const [message, details] = lines[1].split(',');
 
-    if (!found) {
+      document.getElementById('message').innerText = message ? message.trim() : "No message today.";
+      document.getElementById('details').innerText = details ? details.trim() : "";
+    } else {
       document.getElementById('message').innerText = "No message today.";
+      document.getElementById('details').innerText = "";
     }
   })
   .catch(err => {
     document.getElementById('message').innerText = "Error loading message.";
+    document.getElementById('details').innerText = "";
   });
 </script>
 
