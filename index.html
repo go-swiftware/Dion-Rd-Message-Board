@@ -7,9 +7,9 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      font-size: 28px;
+      font-size: 24px;
       text-align: center;
-      margin-top: 50px;
+      margin-top: 30px;
       padding: 20px;
     }
     #date {
@@ -17,24 +17,38 @@
       margin-bottom: 30px;
       font-size: 36px;
     }
-    #message {
-      font-size: 32px;
-      font-weight: bold;
-      margin-top: 20px;
+    table {
+      margin: 0 auto;
+      border-collapse: collapse;
+      width: 80%;
     }
-    #details {
+    th, td {
+      border: 1px solid #ccc;
+      padding: 15px;
       font-size: 24px;
-      margin-top: 15px;
-      color: #333;
-      white-space: pre-line;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    td {
+      vertical-align: top;
     }
   </style>
 </head>
 <body>
 
 <div id="date"></div>
-<div id="message">Loading message...</div>
-<div id="details"></div>
+<table id="messages-table">
+  <thead>
+    <tr>
+      <th>Message</th>
+      <th>Details / Instructions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- Messages will be inserted here -->
+  </tbody>
+</table>
 
 <script>
 // Display today's date
@@ -47,21 +61,43 @@ fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vS1tum_HqVBeq7JYYO66Gp0DF
   .then(response => response.text())
   .then(csv => {
     const lines = csv.trim().split('\n');
+    const tableBody = document.querySelector('#messages-table tbody');
 
     if (lines.length > 1) {
-      // The first line is header. The second line is the first actual message.
-      const [message, details] = lines[1].split(',');
+      for (let i = 1; i < lines.length; i++) { // Start from 1 to skip headers
+        const [message, details] = lines[i].split(',');
 
-      document.getElementById('message').innerText = message ? message.trim() : "No message today.";
-      document.getElementById('details').innerText = details ? details.trim() : "";
+        if (message && details) {
+          const row = document.createElement('tr');
+
+          const messageCell = document.createElement('td');
+          messageCell.innerText = message.trim();
+          row.appendChild(messageCell);
+
+          const detailsCell = document.createElement('td');
+          detailsCell.innerText = details.trim();
+          row.appendChild(detailsCell);
+
+          tableBody.appendChild(row);
+        }
+      }
     } else {
-      document.getElementById('message').innerText = "No message today.";
-      document.getElementById('details').innerText = "";
+      const row = document.createElement('tr');
+      const noMessageCell = document.createElement('td');
+      noMessageCell.setAttribute('colspan', '2');
+      noMessageCell.innerText = "No messages today.";
+      row.appendChild(noMessageCell);
+      tableBody.appendChild(row);
     }
   })
   .catch(err => {
-    document.getElementById('message').innerText = "Error loading message.";
-    document.getElementById('details').innerText = "";
+    const tableBody = document.querySelector('#messages-table tbody');
+    const row = document.createElement('tr');
+    const errorCell = document.createElement('td');
+    errorCell.setAttribute('colspan', '2');
+    errorCell.innerText = "Error loading messages.";
+    row.appendChild(errorCell);
+    tableBody.appendChild(row);
   });
 </script>
 
