@@ -36,12 +36,10 @@
       border-collapse: collapse;
       width: 80%;
     }
-    th, td {
+    td {
       border: 1px solid #555;
       padding: 15px;
       font-size: 24px;
-    }
-    td {
       vertical-align: top;
       background-color: black;
     }
@@ -78,4 +76,84 @@ window.onload = function() {
 
     const timeString = hours + ':' + minutes + ' ' + ampm;
 
-    const weekdays = ["Sunday", "Monday", "Tuesday", "We
+    const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const months = ["January", "February", "March", "April", "May", "June",
+                    "July", "August", "September", "October", "November", "December"];
+
+    const dayOfWeek = weekdays[now.getDay()];
+    const day = now.getDate();
+    const month = months[now.getMonth()];
+    const year = now.getFullYear();
+
+    const dateString = dayOfWeek + ", " + day + " " + month + " " + year;
+
+    document.getElementById('date').innerText = timeString + " " + dateString;
+  }
+
+  updateTimeAndDate();
+  setInterval(updateTimeAndDate, 60000);
+
+  fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vS1tum_HqVBeq7JYYO66Gp0DFwe0ekDd1DtGQexnI49fYxwBzIYWCPAJIEvd2g5cPH6uf-tAItqErSN/pub?gid=0&single=true&output=csv')
+    .then(response => response.text())
+    .then(csv => {
+      const lines = csv.trim().split('\n');
+      const tableBody = document.querySelector('#messages-table tbody');
+
+      if (lines.length > 1) {
+        for (let i = 1; i < lines.length; i++) {
+          const fields = lines[i].match(/("[^"]+"|[^,]+)/g);
+          if (fields && fields.length >= 2) {
+            const message = fields[0].replace(/^"|"$/g, '').trim();
+            const details = fields[1].replace(/^"|"$/g, '').trim();
+
+            const row = document.createElement('tr');
+
+            const messageCell = document.createElement('td');
+            messageCell.innerText = message;
+            row.appendChild(messageCell);
+
+            const detailsCell = document.createElement('td');
+            detailsCell.innerText = details;
+            row.appendChild(detailsCell);
+
+            tableBody.appendChild(row);
+          }
+        }
+      } else {
+        const row = document.createElement('tr');
+        const noMessageCell = document.createElement('td');
+        noMessageCell.setAttribute('colspan', '2');
+        noMessageCell.innerText = "No messages today.";
+        row.appendChild(noMessageCell);
+        tableBody.appendChild(row);
+      }
+
+      startAutoScroll();
+    })
+    .catch(err => {
+      const tableBody = document.querySelector('#messages-table tbody');
+      const row = document.createElement('tr');
+      const errorCell = document.createElement('td');
+      errorCell.setAttribute('colspan', '2');
+      errorCell.innerText = "Error loading messages.";
+      row.appendChild(errorCell);
+      tableBody.appendChild(row);
+    });
+
+  function startAutoScroll() {
+    const container = document.getElementById('scroll-container');
+    let scrollSpeed = 1;
+    let scrollInterval = 40;
+
+    setInterval(() => {
+      container.scrollTop += scrollSpeed;
+      if (container.scrollTop + container.clientHeight >= container.scrollHeight) {
+        container.scrollTop = 0;
+      }
+    }, scrollInterval);
+  }
+};
+</script>
+
+</body>
+</html>
