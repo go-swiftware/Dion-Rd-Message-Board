@@ -17,17 +17,20 @@
       font-family: Arial, sans-serif;
       font-size: 24px;
       text-align: center;
-      margin: 20px 0 10px 0;
+      margin: 10px 0;
       padding: 10px;
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
     }
     #date {
       font-weight: bold;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
       font-size: 36px;
     }
     #scroll-container {
-      height: 60vh;
+      flex: 1;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
     }
@@ -46,6 +49,11 @@
     a {
       color: lightblue;
     }
+    #footer {
+      font-size: 12px;
+      color: gray;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -60,8 +68,9 @@
   </table>
 </div>
 
-<br>
-<p style='font-size: 14px; color: gray;'>To edit, add, or remove anything on the message board, <a href="https://docs.google.com/spreadsheets/d/1hAvv6xN0ByJupZL7AoP20pXIkHtNlpkG3xx-wCqSbmA/edit">go to the Google Sheet here</a>.</p>
+<div id="footer">
+  To edit, add, or remove anything on the message board, <a href="https://docs.google.com/spreadsheets/d/1hAvv6xN0ByJupZL7AoP20pXIkHtNlpkG3xx-wCqSbmA/edit">go to the Google Sheet here</a>.
+</div>
 
 <script>
 window.onload = function() {
