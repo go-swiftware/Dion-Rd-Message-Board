@@ -1,74 +1,109 @@
-<!DOCTYPE html>
+d<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
   <title>Dad's Message Board</title>
-  
+
   <!-- iOS Fullscreen Web App Meta Tags -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    
   <meta http-equiv="refresh" content="600"> <!-- Refresh every 10 minutes -->
-  <style>
-  body {
-    background-color: black;
-    color: white;
-    font-family: Arial, sans-serif;
-    font-size: 24px;
-    text-align: center;
-    margin-top: 30px;
-    padding: 20px;
-  }
-  #date {
-    font-weight: bold;
-    margin-bottom: 30px;
-    font-size: 36px;
-  }
-  table {
-    margin: 0 auto;
-    border-collapse: collapse;
-    width: 80%;
-  }
-  th, td {
-    border: 1px solid #555; /* Use dark grey borders instead of black */
-    padding: 15px;
-    font-size: 24px;
-  }
-  th {
-    background-color: #222; /* Darker grey for table header background */
-  }
-  td {
-    vertical-align: top;
-    background-color: black; /* Keep cell background black */
-  }
-  a {
-    color: lightblue; /* Make links readable on black */
-  }
-</style>
 
+  <style>
+    body {
+      background-color: black;
+      color: white;
+      font-family: Arial, sans-serif;
+      font-size: 24px;
+      text-align: center;
+      margin-top: 30px;
+      padding: 20px;
+      overflow: hidden; /* Hide scrollbars */
+    }
+    #date {
+      font-weight: bold;
+      margin-bottom: 30px;
+      font-size: 36px;
+    }
+    #scroll-container {
+      height: 60vh;
+      overflow: hidden;
+      position: relative;
+    }
+    table {
+      margin: 0 auto;
+      border-collapse: collapse;
+      width: 80%;
+    }
+    th, td {
+      border: 1px solid #555;
+      padding: 15px;
+      font-size: 24px;
+    }
+    th {
+      background-color: #222;
+    }
+    td {
+      vertical-align: top;
+      background-color: black;
+    }
+    a {
+      color: lightblue;
+    }
+  </style>
 </head>
 <body>
 
 <div id="date"></div>
-<table id="messages-table">
-  <tbody>
-    <!-- Messages will be inserted here -->
-  </tbody>
-</table>
+
+<div id="scroll-container">
+  <table id="messages-table">
+    <thead>
+      <tr>
+        <th>Message</th>
+        <th>Details / Instructions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Messages will be inserted here -->
+    </tbody>
+  </table>
+</div>
+
+<br><br>
+<p style='font-size: 14px; color: gray;'>To edit, add, or remove anything on the message board, <a href="https://docs.google.com/spreadsheets/d/1hAvv6xN0ByJupZL7AoP20pXIkHtNlpkG3xx-wCqSbmA/edit">go to the Google Sheet here</a>.</p>
 
 <script>
-// Format time and date
-const now = new Date();
-const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: true };
-const timeString = now.toLocaleTimeString('en-US', timeOptions);
+function updateTimeAndDate() {
+  const now = new Date();
+  let hours = now.getHours();
+  let minutes = now.getMinutes();
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12;
+  minutes = minutes < 10 ? '0' + minutes : minutes;
 
-const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-const dateString = now.toLocaleDateString('en-GB', dateOptions);
+  const timeString = hours + ':' + minutes + ' ' + ampm;
 
-document.getElementById('date').innerText = `${timeString} ${dateString}`;
+  const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const months = ["January", "February", "March", "April", "May", "June",
+                  "July", "August", "September", "October", "November", "December"];
 
-// Fetch the CSV file from Google Sheets
+  const dayOfWeek = weekdays[now.getDay()];
+  const day = now.getDate();
+  const month = months[now.getMonth()];
+  const year = now.getFullYear();
+
+  const dateString = dayOfWeek + ", " + day + " " + month + " " + year;
+
+  document.getElementById('date').innerText = timeString + " " + dateString;
+}
+
+updateTimeAndDate();
+setInterval(updateTimeAndDate, 60000); // Update clock every minute
+
+// Fetch and display messages
 fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vS1tum_HqVBeq7JYYO66Gp0DFwe0ekDd1DtGQexnI49fYxwBzIYWCPAJIEvd2g5cPH6uf-tAItqErSN/pub?gid=0&single=true&output=csv')
   .then(response => response.text())
   .then(csv => {
@@ -76,9 +111,8 @@ fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vS1tum_HqVBeq7JYYO66Gp0DF
     const tableBody = document.querySelector('#messages-table tbody');
 
     if (lines.length > 1) {
-      for (let i = 1; i < lines.length; i++) { // Start from 1 to skip headers
+      for (let i = 1; i < lines.length; i++) { // skip header
         const [message, details] = lines[i].split(',');
-
         if (message && details) {
           const row = document.createElement('tr');
 
@@ -101,6 +135,8 @@ fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vS1tum_HqVBeq7JYYO66Gp0DF
       row.appendChild(noMessageCell);
       tableBody.appendChild(row);
     }
+
+    startAutoScroll(); // Start scrolling after loading messages
   })
   .catch(err => {
     const tableBody = document.querySelector('#messages-table tbody');
@@ -111,6 +147,19 @@ fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vS1tum_HqVBeq7JYYO66Gp0DF
     row.appendChild(errorCell);
     tableBody.appendChild(row);
   });
+
+function startAutoScroll() {
+  const container = document.getElementById('scroll-container');
+  let scrollSpeed = 1; // pixels per 40ms
+  let scrollInterval = 40; // how often to scroll (ms)
+
+  setInterval(() => {
+    container.scrollTop += scrollSpeed;
+    if (container.scrollTop + container.clientHeight >= container.scrollHeight) {
+      container.scrollTop = 0;
+    }
+  }, scrollInterval);
+}
 </script>
 
 </body>
